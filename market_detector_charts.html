@@ -440,15 +440,30 @@
             
             // Grafico 1: Prezzo con background colorato
             // Classifica ogni punto come BULL o BEAR (niente NEUTRAL)
+            // Calcola anche returns per fallback
+            const returns = closes.map((close, i) => i > 0 ? (close - closes[i-1]) / closes[i-1] : null);
+            
             const phases = closes.map((close, i) => {
-                const phase = classificaBullBear({}, spy_vs_sma150[i], null, null);
+                // Passa tutti i parametri per il fallback corretto
+                const phase = classificaBullBear({}, spy_vs_sma150[i], vars.spy_vs_ema30[i], returns[i]);
                 // Forza BULL o BEAR (niente NEUTRAL)
-                if (phase === 'NEUTRAL') {
-                    // Se esattamente su SMA150, usa il valore precedente o default BULL
-                    return i > 0 ? phases[i-1] : 'BULL';
-                }
                 return phase.includes('BULL') ? 'BULL' : 'BEAR';
             });
+            
+            // Debug: conta fasi e verifica valori spy_vs_sma150
+            const bullCount = phases.filter(p => p === 'BULL').length;
+            const bearCount = phases.filter(p => p === 'BEAR').length;
+            const nullCount = spy_vs_sma150.filter(v => v === null || v === undefined).length;
+            const positiveCount = spy_vs_sma150.filter(v => v !== null && v !== undefined && v > 0).length;
+            const negativeCount = spy_vs_sma150.filter(v => v !== null && v !== undefined && v < 0).length;
+            
+            console.log(`Fasi totali: ${phases.length}, BULL: ${bullCount}, BEAR: ${bearCount}`);
+            console.log(`spy_vs_sma150 - Null: ${nullCount}, Positivi: ${positiveCount}, Negativi: ${negativeCount}`);
+            
+            // Verifica che ci siano valori negativi
+            if (negativeCount === 0) {
+                console.warn('ATTENZIONE: Nessun valore negativo in spy_vs_sma150! Questo potrebbe indicare un problema nei dati.');
+            }
             
             // Crea zone continue senza gap - ogni punto deve avere un colore
             const bullZones = [];
@@ -459,30 +474,46 @@
             phases.forEach((phase, i) => {
                 const isBull = phase === 'BULL';
                 
+                // Inizializza la prima zona
+                if (currentZone === null) {
+                    currentZone = isBull;
+                    zoneStart = i;
+                }
                 // Se cambia la fase, chiudi la zona precedente e inizia una nuova
-                if (currentZone !== null && currentZone !== isBull) {
+                else if (currentZone !== isBull) {
+                    // Chiudi la zona precedente
                     if (currentZone) {
                         bullZones.push({ start: dates[zoneStart], end: dates[i-1] });
                     } else {
                         bearZones.push({ start: dates[zoneStart], end: dates[i-1] });
                     }
-                    zoneStart = i;
-                }
-                
-                // Se è la prima iterazione, inizializza
-                if (currentZone === null) {
+                    // Inizia nuova zona
                     currentZone = isBull;
                     zoneStart = i;
                 }
             });
             
-            // Chiudi l'ultima zona
+            // Chiudi l'ultima zona (importante!)
             if (currentZone !== null && zoneStart < dates.length) {
                 if (currentZone) {
                     bullZones.push({ start: dates[zoneStart], end: dates[dates.length - 1] });
                 } else {
                     bearZones.push({ start: dates[zoneStart], end: dates[dates.length - 1] });
                 }
+            }
+            
+            // Debug: verifica zone create
+            console.log(`Zone BULL create: ${bullZones.length}, Zone BEAR create: ${bearZones.length}`);
+            if (bearZones.length > 0) {
+                console.log('Prima zona BEAR:', bearZones[0]);
+            }
+            if (bullZones.length > 0) {
+                console.log('Prima zona BULL:', bullZones[0]);
+            }
+            
+            // Verifica che ci siano zone BEAR - se no, potrebbe essere un problema nei dati
+            if (bearZones.length === 0 && bearCount > 0) {
+                console.warn('ATTENZIONE: Ci sono fasi BEAR ma nessuna zona BEAR creata!');
             }
             
             const trace1 = {
