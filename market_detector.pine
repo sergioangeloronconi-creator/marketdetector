@@ -9,14 +9,55 @@ indicator("Market Detector - Phase Stratification", shorttitle="MD", overlay=tru
 // FASE 0 — BASELINE (Bull/Bear Market)
 // Sempre presente, sempre calcolato, sempre attivo in background
 // Priorità: 1 (più bassa)
+// Logica ufficiale Q-Mentor: SMA150 come discriminante principale
 // ============================================================================
 baselinePhase() =>
-    sma20 = ta.sma(close, 20)
-    sma50 = ta.sma(close, 50)
+    // EMA30 (shock/crash/recovery)
+    ema30 = ta.ema(close, 30)
     
-    isBull = close > sma20 and sma20 > sma50
-    isBear = close < sma20 and sma20 < sma50
+    // SMA150 (regime primario) - DISCRIMINANTE PRINCIPALE
+    sma150 = ta.sma(close, 150)
     
+    // Calcolo posizioni relative (percentuali)
+    spy_vs_ema30 = na(ema30) ? na : (close - ema30) / ema30
+    spy_vs_sma150 = na(sma150) ? na : (close - sma150) / sma150
+    
+    // Returns per fallback
+    returns = ta.change(close) / close[1]
+    
+    // Classificazione basata su priorità:
+    // 1. SMA150 (discriminante principale)
+    // 2. EMA30 (proxy durante warm-up period)
+    // 3. Returns (fallback)
+    // 4. Default: BULL (conservativo)
+    
+    isBull = false
+    isBear = false
+    
+    if not na(spy_vs_sma150)
+        // Classificazione principale basata su SMA150
+        if spy_vs_sma150 > 0
+            isBull := true
+        else if spy_vs_sma150 < 0
+            isBear := true
+        // spy_vs_sma150 == 0 è NEUTRAL (caso raro)
+    else if not na(spy_vs_ema30)
+        // Proxy: usa EMA30 durante warm-up period (< 150 barre)
+        if spy_vs_ema30 > 0
+            isBull := true
+        else
+            isBear := true
+    else if not na(returns)
+        // Fallback: usa returns
+        if returns > 0
+            isBull := true
+        else
+            isBear := true
+    else
+        // Default conservativo: BULL
+        isBull := true
+    
+    // Colori: Verde per Bull, Rosso per Bear
     phaseColor = isBull ? color.new(color.green, 80) : isBear ? color.new(color.red, 80) : color.new(color.gray, 90)
     
     [isBull, isBear, phaseColor]

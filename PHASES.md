@@ -13,6 +13,26 @@
 - **Priorità:** 1 (più bassa)
 - **Note:** Questa fase è il layer di base.
 
+**Logica Ufficiale Q-Mentor:**
+
+- **Discriminante Principale:** SMA150 (Simple Moving Average a 150 periodi)
+  - **BULL Market:** `spy_vs_sma150 > 0` (SPY > SMA150)
+  - **BEAR Market:** `spy_vs_sma150 < 0` (SPY < SMA150)
+  - **NEUTRAL:** `spy_vs_sma150 == 0` (SPY esattamente su SMA150 - caso raro)
+
+- **Variabili Calcolate:**
+  - `ema30` = EMA30 (per shock/crash/recovery)
+  - `sma150` = SMA150 (regime primario)
+  - `spy_vs_ema30` = (Close - EMA30) / EMA30
+  - `spy_vs_sma150` = (Close - SMA150) / SMA150 (VARIABILE CHIAVE)
+  - `ema30_vs_sma150` = (EMA30 - SMA150) / SMA150
+
+- **Gerarchia di Fallback (warm-up period):**
+  1. **SMA150 disponibile:** Usa `spy_vs_sma150` (classificazione principale)
+  2. **SMA150 non disponibile (< 150 barre):** Usa `spy_vs_ema30` come proxy
+  3. **EMA30 non disponibile:** Usa `returns` (percentuale di cambio)
+  4. **Default:** BULL (conservativo)
+
 ---
 
 ## FASE 1 — LATERALITÀ / RANGE
