@@ -466,39 +466,70 @@
             }
             
             // Crea zone continue senza gap - ogni punto deve avere un colore
+            // Usa approccio che crea zone continue senza spazi
             const bullZones = [];
             const bearZones = [];
             let currentZone = null;
-            let zoneStart = 0;
+            let zoneStartIdx = 0;
             
-            phases.forEach((phase, i) => {
-                const isBull = phase === 'BULL';
+            // Itera attraverso tutte le fasi
+            for (let i = 0; i < phases.length; i++) {
+                const isBull = phases[i] === 'BULL';
                 
                 // Inizializza la prima zona
                 if (currentZone === null) {
                     currentZone = isBull;
-                    zoneStart = i;
+                    zoneStartIdx = i;
                 }
                 // Se cambia la fase, chiudi la zona precedente e inizia una nuova
                 else if (currentZone !== isBull) {
-                    // Chiudi la zona precedente
+                    // Chiudi la zona precedente - usa la data corrente come fine (senza gap)
                     if (currentZone) {
-                        bullZones.push({ start: dates[zoneStart], end: dates[i-1] });
+                        bullZones.push({ 
+                            start: dates[zoneStartIdx], 
+                            end: dates[i] // Usa la data corrente, non i-1
+                        });
                     } else {
-                        bearZones.push({ start: dates[zoneStart], end: dates[i-1] });
+                        bearZones.push({ 
+                            start: dates[zoneStartIdx], 
+                            end: dates[i] // Usa la data corrente, non i-1
+                        });
                     }
-                    // Inizia nuova zona
+                    // Inizia nuova zona dalla stessa data (sovrapposizione per evitare gap)
                     currentZone = isBull;
-                    zoneStart = i;
+                    zoneStartIdx = i;
                 }
-            });
+            }
             
-            // Chiudi l'ultima zona (importante!)
-            if (currentZone !== null && zoneStart < dates.length) {
+            // Chiudi l'ultima zona (importante!) - deve andare fino all'ultima data
+            if (currentZone !== null && zoneStartIdx < dates.length) {
+                const lastDate = dates[dates.length - 1];
                 if (currentZone) {
-                    bullZones.push({ start: dates[zoneStart], end: dates[dates.length - 1] });
+                    bullZones.push({ 
+                        start: dates[zoneStartIdx], 
+                        end: lastDate 
+                    });
                 } else {
-                    bearZones.push({ start: dates[zoneStart], end: dates[dates.length - 1] });
+                    bearZones.push({ 
+                        start: dates[zoneStartIdx], 
+                        end: lastDate 
+                    });
+                }
+            }
+            
+            // Verifica che le zone coprano tutto il periodo
+            const firstDate = dates[0];
+            const lastDate = dates[dates.length - 1];
+            const allZones = [...bullZones, ...bearZones].sort((a, b) => new Date(a.start) - new Date(b.start));
+            
+            if (allZones.length > 0) {
+                const coverageStart = new Date(allZones[0].start);
+                const coverageEnd = new Date(allZones[allZones.length - 1].end);
+                console.log(`Copertura zone: da ${coverageStart} a ${coverageEnd}`);
+                console.log(`Periodo dati: da ${firstDate} a ${lastDate}`);
+                
+                if (coverageStart > new Date(firstDate) || coverageEnd < new Date(lastDate)) {
+                    console.warn('ATTENZIONE: Le zone non coprono tutto il periodo!');
                 }
             }
             
@@ -546,8 +577,8 @@
             // Crea shapes per coprire tutto il periodo senza gap
             const allShapes = [];
             
-            // Aggiungi zone BULL (verde)
-            bullZones.forEach(zone => {
+            // Aggiungi zone BULL (verde) - ordinate per data
+            bullZones.sort((a, b) => new Date(a.start) - new Date(b.start)).forEach(zone => {
                 allShapes.push({
                     type: 'rect',
                     xref: 'x',
@@ -556,14 +587,15 @@
                     x1: zone.end,
                     y0: 0,
                     y1: 1,
-                    fillcolor: 'rgba(76, 175, 80, 0.25)', // Verde più visibile
+                    fillcolor: 'rgba(76, 175, 80, 0.3)', // Verde più visibile
                     line: { width: 0 },
-                    layer: 'below'
+                    layer: 'below',
+                    opacity: 1
                 });
             });
             
-            // Aggiungi zone BEAR (rosso)
-            bearZones.forEach(zone => {
+            // Aggiungi zone BEAR (rosso) - ordinate per data
+            bearZones.sort((a, b) => new Date(a.start) - new Date(b.start)).forEach(zone => {
                 allShapes.push({
                     type: 'rect',
                     xref: 'x',
@@ -572,11 +604,14 @@
                     x1: zone.end,
                     y0: 0,
                     y1: 1,
-                    fillcolor: 'rgba(244, 67, 54, 0.25)', // Rosso più visibile
+                    fillcolor: 'rgba(244, 67, 54, 0.3)', // Rosso più visibile
                     line: { width: 0 },
-                    layer: 'below'
+                    layer: 'below',
+                    opacity: 1
                 });
             });
+            
+            console.log(`Totale shapes create: ${allShapes.length} (${bullZones.length} BULL + ${bearZones.length} BEAR)`);
             
             Plotly.newPlot('chart1', [trace1, trace2, trace3], {
                 title: 'SPY con Classificazione Bull/Bear',
