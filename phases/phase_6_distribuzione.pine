@@ -1,0 +1,29 @@
+//@version=6
+// FASE 6 — DISTRIBUZIONE
+// Priorità: 3
+// Colore: Arancione
+// Fase terminale del Bull
+// Perdita di efficienza, rotazione
+// Può avvenire solo in Bull o Accumulation avanzata
+// Sovrascrive Bull visivamente
+
+// Funzione per determinare fase di Distribuzione
+// Restituisce: [isDistribution, color]
+distribuzionePhase() =>
+    // Logica: fase terminale del Bull, perdita di efficienza, rotazione
+    // Può avvenire solo in Bull o Accumulation avanzata
+    // TODO: Implementare logica specifica per determinare distribuzione
+    
+    // Esempio: Bull in corso ma con divergenze negative
+    sma20 = ta.sma(close, 20)
+    sma50 = ta.sma(close, 50)
+    isBull = close > sma20 and sma20 > sma50
+    
+    // Distribuzione: Bull ma con perdita di momentum
+    rsi = ta.rsi(close, 14)
+    isDistribution = isBull and rsi > 70 and ta.mom(close, 10) < 0
+    
+    // Colore: Arancione
+    phaseColor = isDistribution ? color.new(color.orange, 65) : na
+    
+    [isDistribution, phaseColor]

@@ -1,0 +1,25 @@
+//@version=6
+// FASE 2 — CRASH
+// Priorità: 6
+// Colore: Giallo
+// Evento violento, rapido, direzionale, raro
+// NON persistente - transitorio
+// Sovrascrive Bull, Bear e Lateralità
+
+// Funzione per determinare fase di Crash
+// Restituisce: [isCrash, color]
+crashPhase() =>
+    // Logica: evento violento, rapido, direzionale
+    // TODO: Implementare logica specifica per determinare crash
+    
+    // Esempio: calo violento in breve tempo
+    changePercent = ((close - close[1]) / close[1]) * 100
+    changePercent2 = ((close[1] - close[2]) / close[2]) * 100
+    
+    // Crash: calo > 5% in una barra o calo cumulativo > 7% in 2 barre
+    isCrash = changePercent < -5.0 or (changePercent < -3.0 and changePercent2 < -4.0)
+    
+    // Colore: Giallo
+    phaseColor = isCrash ? color.new(color.yellow, 60) : na
+    
+    [isCrash, phaseColor]

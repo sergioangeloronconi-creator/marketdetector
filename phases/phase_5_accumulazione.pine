@@ -1,0 +1,26 @@
+//@version=6
+// FASE 5 — ACCUMULAZIONE
+// Priorità: 5
+// Colore: Blu
+// Fase post-recovery
+// Costruzione, assorbimento supply
+// Sovrascrive Recovery
+// Ancora distinta da Bull Market
+
+// Funzione per determinare fase di Accumulazione
+// Restituisce: [isAccumulation, color]
+accumulazionePhase() =>
+    // Logica: post-recovery, costruzione, assorbimento supply
+    // TODO: Implementare logica specifica per determinare accumulazione
+    
+    // Esempio: consolidamento sopra recovery, volume crescente
+    sma20 = ta.sma(close, 20)
+    sma50 = ta.sma(close, 50)
+    
+    // Accumulazione: sopra recovery, consolidamento, ma non ancora bull chiaro
+    isAccumulation = close > sma20 and close < sma50 * 1.05 and ta.sma(volume, 10) > ta.sma(volume, 30)
+    
+    // Colore: Blu
+    phaseColor = isAccumulation ? color.new(color.blue, 60) : na
+    
+    [isAccumulation, phaseColor]

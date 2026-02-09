@@ -1,0 +1,27 @@
+//@version=6
+// FASE 4 — RECOVERY
+// Priorità: 4
+// Colore: Azzurro
+// Fase di uscita dal panico
+// Non è Bull Market - è una fase di transizione fragile
+// Recovery può convivere con Bear di fondo
+// Recovery non riaccende Bull
+
+// Funzione per determinare fase di Recovery
+// Restituisce: [isRecovery, color]
+recoveryPhase() =>
+    // Logica: fase di uscita dal panico, transizione fragile
+    // TODO: Implementare logica specifica per determinare recovery
+    
+    // Esempio: rimbalzo dopo calo significativo, ma non ancora trend rialzista
+    recentLow = ta.lowest(low, 10)
+    bounceFromLow = close > recentLow * 1.02  // Rimbalzo del 2% dal minimo recente
+    
+    // Recovery: rimbalzo ma non ancora sopra media mobile lunga
+    sma50 = ta.sma(close, 50)
+    isRecovery = bounceFromLow and close < sma50
+    
+    // Colore: Azzurro
+    phaseColor = isRecovery ? color.new(color.aqua, 70) : na
+    
+    [isRecovery, phaseColor]

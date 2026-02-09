@@ -1,0 +1,149 @@
+//@version=6
+// Market Detector (MD) — Phase Stratification Framework
+// File Master: gestisce priorità, overlay e colore finale
+// Q-Mentor Framework
+
+indicator("Market Detector - Phase Stratification", shorttitle="MD", overlay=true, max_bars_back=500)
+
+// ============================================================================
+// FASE 0 — BASELINE (Bull/Bear Market)
+// Sempre presente, sempre calcolato, sempre attivo in background
+// Priorità: 1 (più bassa)
+// ============================================================================
+baselinePhase() =>
+    sma20 = ta.sma(close, 20)
+    sma50 = ta.sma(close, 50)
+    
+    isBull = close > sma20 and sma20 > sma50
+    isBear = close < sma20 and sma20 < sma50
+    
+    phaseColor = isBull ? color.new(color.green, 80) : isBear ? color.new(color.red, 80) : color.new(color.gray, 90)
+    
+    [isBull, isBear, phaseColor]
+
+// ============================================================================
+// FASE 1 — LATERALITÀ / RANGE
+// Priorità: 2
+// Colore: Grigio
+// ============================================================================
+lateralitaPhase() =>
+    atrValue = ta.atr(14)
+    atrPercent = (atrValue / close) * 100
+    isLateral = atrPercent < 2.0
+    phaseColor = isLateral ? color.new(color.gray, 70) : na
+    [isLateral, phaseColor]
+
+// ============================================================================
+// FASE 2 — CRASH
+// Priorità: 6
+// Colore: Giallo
+// ============================================================================
+crashPhase() =>
+    changePercent = ((close - close[1]) / close[1]) * 100
+    changePercent2 = ((close[1] - close[2]) / close[2]) * 100
+    isCrash = changePercent < -5.0 or (changePercent < -3.0 and changePercent2 < -4.0)
+    phaseColor = isCrash ? color.new(color.yellow, 60) : na
+    [isCrash, phaseColor]
+
+// ============================================================================
+// FASE 3 — CAPITULATION
+// Priorità: 7 (MASSIMA)
+// Colore: Viola
+// ============================================================================
+capitulationPhase() =>
+    volumeSpike = volume > ta.sma(volume, 20) * 2.0
+    violentDrop = ((close - close[1]) / close[1]) * 100 < -6.0
+    isCapitulation = volumeSpike and violentDrop
+    phaseColor = isCapitulation ? color.new(color.purple, 50) : na
+    [isCapitulation, phaseColor]
+
+// ============================================================================
+// FASE 4 — RECOVERY
+// Priorità: 4
+// Colore: Azzurro
+// ============================================================================
+recoveryPhase() =>
+    recentLow = ta.lowest(low, 10)
+    bounceFromLow = close > recentLow * 1.02
+    sma50 = ta.sma(close, 50)
+    isRecovery = bounceFromLow and close < sma50
+    phaseColor = isRecovery ? color.new(color.aqua, 70) : na
+    [isRecovery, phaseColor]
+
+// ============================================================================
+// FASE 5 — ACCUMULAZIONE
+// Priorità: 5
+// Colore: Blu
+// ============================================================================
+accumulazionePhase() =>
+    sma20 = ta.sma(close, 20)
+    sma50 = ta.sma(close, 50)
+    isAccumulation = close > sma20 and close < sma50 * 1.05 and ta.sma(volume, 10) > ta.sma(volume, 30)
+    phaseColor = isAccumulation ? color.new(color.blue, 60) : na
+    [isAccumulation, phaseColor]
+
+// ============================================================================
+// FASE 6 — DISTRIBUZIONE
+// Priorità: 3
+// Colore: Arancione
+// ============================================================================
+distribuzionePhase() =>
+    sma20 = ta.sma(close, 20)
+    sma50 = ta.sma(close, 50)
+    isBull = close > sma20 and sma20 > sma50
+    rsi = ta.rsi(close, 14)
+    isDistribution = isBull and rsi > 70 and ta.mom(close, 10) < 0
+    phaseColor = isDistribution ? color.new(color.orange, 65) : na
+    [isDistribution, phaseColor]
+
+// ============================================================================
+// GESTIONE PRIORITÀ E OVERLAY
+// Gerarchia: Capitulation (7) > Crash (6) > Accumulazione (5) > Recovery (4) 
+//           > Distribuzione (3) > Lateralità (2) > Baseline (1)
+// ============================================================================
+
+// Calcolo di tutte le fasi
+[isBull, isBear, baselineColor] = baselinePhase()
+[isLateral, lateralColor] = lateralitaPhase()
+[isCrash, crashColor] = crashPhase()
+[isCapitulation, capitulationColor] = capitulationPhase()
+[isRecovery, recoveryColor] = recoveryPhase()
+[isAccumulation, accumulationColor] = accumulazionePhase()
+[isDistribution, distributionColor] = distribuzionePhase()
+
+// Determinazione colore finale basato su priorità
+// Priorità: Capitulation (7) > Crash (6) > Accumulazione (5) > Recovery (4) 
+//           > Distribuzione (3) > Lateralità (2) > Baseline (1)
+finalColor = na
+
+// Applicazione priorità (dalla più alta alla più bassa)
+if not na(capitulationColor)
+    finalColor := capitulationColor
+else if not na(crashColor)
+    finalColor := crashColor
+else if not na(accumulationColor)
+    finalColor := accumulationColor
+else if not na(recoveryColor)
+    finalColor := recoveryColor
+else if not na(distributionColor)
+    finalColor := distributionColor
+else if not na(lateralColor)
+    finalColor := lateralColor
+else
+    finalColor := baselineColor
+
+// Applicazione colore di background
+bgcolor(finalColor, title="Market Phase Background")
+
+// Labels opzionali per debug (commentare se non necessario)
+// var label debugLabel = na
+// if barstate.islast
+//     label.delete(debugLabel)
+//     phaseName = not na(capitulationColor) ? "Capitulation" : 
+//                 not na(crashColor) ? "Crash" : 
+//                 not na(accumulationColor) ? "Accumulation" : 
+//                 not na(recoveryColor) ? "Recovery" : 
+//                 not na(distributionColor) ? "Distribution" : 
+//                 not na(lateralColor) ? "Lateral" : 
+//                 (isBull ? "Bull" : "Bear")
+//     debugLabel := label.new(bar_index, high, phaseName, style=label.style_label_down, color=finalColor, textcolor=color.white, size=size.small)

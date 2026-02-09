@@ -1,0 +1,26 @@
+//@version=6
+// FASE 3 — CAPITULATION
+// Priorità: 7 (MASSIMA)
+// Colore: Viola
+// Evento distinto dal crash: panico finale, climax, esaurimento vendite
+// Può avvenire solo dopo Crash o Bear prolungato
+// Sovrascrive TUTTE le fasi precedenti
+
+// Funzione per determinare fase di Capitulation
+// Restituisce: [isCapitulation, color]
+capitulationPhase() =>
+    // Logica: panico finale, climax, esaurimento vendite
+    // Può avvenire solo dopo Crash o Bear prolungato
+    // TODO: Implementare logica specifica per determinare capitulation
+    
+    // Esempio: volume estremo + calo violento + possibile inversione
+    volumeSpike = volume > ta.sma(volume, 20) * 2.0
+    violentDrop = ((close - close[1]) / close[1]) * 100 < -6.0
+    
+    // Capitulation: volume estremo + calo violento
+    isCapitulation = volumeSpike and violentDrop
+    
+    // Colore: Viola
+    phaseColor = isCapitulation ? color.new(color.purple, 50) : na
+    
+    [isCapitulation, phaseColor]

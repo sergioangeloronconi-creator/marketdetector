@@ -1,0 +1,20 @@
+//@version=6
+// FASE 0 — BASELINE (Bull/Bear Market)
+// Sempre presente, sempre calcolato, sempre attivo in background
+// Priorità: 1 (più bassa)
+
+// Funzione per determinare Bull/Bear Market
+// Restituisce: [isBull, isBear, color]
+baselinePhase() =>
+    // Calcolo semplice basato su trend
+    // TODO: Implementare logica specifica per determinare Bull/Bear
+    sma20 = ta.sma(close, 20)
+    sma50 = ta.sma(close, 50)
+    
+    isBull = close > sma20 and sma20 > sma50
+    isBear = close < sma20 and sma20 < sma50
+    
+    // Colori: Verde per Bull, Rosso per Bear
+    phaseColor = isBull ? color.new(color.green, 80) : isBear ? color.new(color.red, 80) : color.new(color.gray, 90)
+    
+    [isBull, isBear, phaseColor]
