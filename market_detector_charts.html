@@ -311,7 +311,9 @@
         // API Key Financial Modeling Prep
         const FMP_API_KEY = '59SIlu0tSse4YaQnAuRF1jS1KzgZWPSS';
         
-        // Carica dati da Financial Modeling Prep API
+        // Carica dati da Financial Modeling Prep STABLE API
+        // NOTA: Gli endpoint legacy /api/v3/ sono stati dismessi
+        // Usa gli endpoint /stable/ come da documentazione ufficiale
         async function caricaDatiSPY() {
             try {
                 // Calcola date: ultimi 20 anni
@@ -322,8 +324,8 @@
                 const fromDate = startDate.toISOString().split('T')[0];
                 const toDate = endDate.toISOString().split('T')[0];
                 
-                // Endpoint FMP per dati storici giornalieri
-                const url = `https://financialmodelingprep.com/api/v3/historical-price-full/SPY?from=${fromDate}&to=${toDate}&apikey=${FMP_API_KEY}`;
+                // Endpoint FMP STABLE per dati storici giornalieri (non più /api/v3/)
+                const url = `https://financialmodelingprep.com/stable/historical-price-full?symbol=SPY&from=${fromDate}&to=${toDate}&apikey=${FMP_API_KEY}`;
                 
                 console.log('Caricamento dati da FMP API...');
                 const response = await fetch(url);
@@ -334,19 +336,36 @@
                 
                 const data = await response.json();
                 
-                // FMP restituisce: { symbol: "SPY", historical: [...] }
-                if (!data.historical || data.historical.length === 0) {
+                // Verifica struttura risposta FMP STABLE API
+                // Può essere: { symbol: "SPY", historical: [...] } oppure array diretto
+                let historicalData = [];
+                
+                if (Array.isArray(data)) {
+                    // Se la risposta è un array diretto
+                    historicalData = data;
+                } else if (data.historical && Array.isArray(data.historical)) {
+                    // Se la risposta ha struttura { symbol: "SPY", historical: [...] }
+                    historicalData = data.historical;
+                } else if (data.symbol && Array.isArray(data)) {
+                    // Altri formati possibili
+                    historicalData = data;
+                } else {
+                    console.error('Formato risposta FMP non riconosciuto:', data);
+                    throw new Error('Formato risposta API non valido');
+                }
+                
+                if (historicalData.length === 0) {
                     throw new Error('Nessun dato storico disponibile');
                 }
                 
                 // Formatta i dati FMP nel formato atteso
                 // FMP formato: { date: "2024-01-15", close: 450.25, ... }
-                const formattedData = data.historical
+                const formattedData = historicalData
                     .map(item => ({
-                        date: item.date,
-                        close: item.close
+                        date: item.date || item.Date || item.timestamp,
+                        close: item.close || item.Close || item.price
                     }))
-                    .filter(d => d.close !== null && d.close !== undefined)
+                    .filter(d => d.close !== null && d.close !== undefined && d.date)
                     .sort((a, b) => new Date(a.date) - new Date(b.date)); // Ordina per data crescente
                 
                 console.log(`Dati caricati: ${formattedData.length} barre da ${formattedData[0].date} a ${formattedData[formattedData.length - 1].date}`);
@@ -358,18 +377,27 @@
                 
                 // Fallback: prova senza range date (ultimi dati disponibili)
                 try {
-                    const urlFallback = `https://financialmodelingprep.com/api/v3/historical-price-full/SPY?apikey=${FMP_API_KEY}`;
+                    const urlFallback = `https://financialmodelingprep.com/stable/historical-price-full?symbol=SPY&apikey=${FMP_API_KEY}`;
                     const responseFallback = await fetch(urlFallback);
                     
                     if (responseFallback.ok) {
                         const dataFallback = await responseFallback.json();
-                        if (dataFallback.historical && dataFallback.historical.length > 0) {
-                            const formattedData = dataFallback.historical
+                        
+                        // Gestione formato risposta (come sopra)
+                        let historicalDataFallback = [];
+                        if (Array.isArray(dataFallback)) {
+                            historicalDataFallback = dataFallback;
+                        } else if (dataFallback.historical && Array.isArray(dataFallback.historical)) {
+                            historicalDataFallback = dataFallback.historical;
+                        }
+                        
+                        if (historicalDataFallback.length > 0) {
+                            const formattedData = historicalDataFallback
                                 .map(item => ({
-                                    date: item.date,
-                                    close: item.close
+                                    date: item.date || item.Date || item.timestamp,
+                                    close: item.close || item.Close || item.price
                                 }))
-                                .filter(d => d.close !== null && d.close !== undefined)
+                                .filter(d => d.close !== null && d.close !== undefined && d.date)
                                 .sort((a, b) => new Date(a.date) - new Date(b.date));
                             
                             console.log(`Dati caricati (fallback): ${formattedData.length} barre`);
