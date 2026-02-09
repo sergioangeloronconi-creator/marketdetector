@@ -1,0 +1,122 @@
+//@version=6
+// Market Detector - Verification Script
+// Mostra classificazione Bull/Bear anno per anno per verifica
+// Q-Mentor Framework
+
+indicator("MD Verification - Year by Year", shorttitle="MD-Verify", overlay=true, max_bars_back=500)
+
+// ============================================================================
+// FASE 0 — BASELINE (Bull/Bear Market) - Logica Ufficiale
+// ============================================================================
+baselinePhase() =>
+    // EMA30 (shock/crash/recovery)
+    ema30 = ta.ema(close, 30)
+    
+    // SMA150 (regime primario) - DISCRIMINANTE PRINCIPALE
+    sma150 = ta.sma(close, 150)
+    
+    // Calcolo posizioni relative (percentuali)
+    spy_vs_ema30 = na(ema30) ? na : (close - ema30) / ema30
+    spy_vs_sma150 = na(sma150) ? na : (close - sma150) / sma150
+    
+    // Returns per fallback
+    returns = ta.change(close) / close[1]
+    
+    // Classificazione
+    isBull = false
+    isBear = false
+    phaseName = "UNKNOWN"
+    
+    if not na(spy_vs_sma150)
+        if spy_vs_sma150 > 0
+            isBull := true
+            phaseName := "BULL"
+        else if spy_vs_sma150 < 0
+            isBear := true
+            phaseName := "BEAR"
+        else
+            phaseName := "NEUTRAL"
+    else if not na(spy_vs_ema30)
+        if spy_vs_ema30 > 0
+            isBull := true
+            phaseName := "BULL (EMA30)"
+        else
+            isBear := true
+            phaseName := "BEAR (EMA30)"
+    else if not na(returns)
+        if returns > 0
+            isBull := true
+            phaseName := "BULL (RET)"
+        else
+            isBear := true
+            phaseName := "BEAR (RET)"
+    else
+        isBull := true
+        phaseName := "BULL (DEF)"
+    
+    phaseColor = isBull ? color.new(color.green, 80) : isBear ? color.new(color.red, 80) : color.new(color.gray, 90)
+    
+    [isBull, isBear, phaseColor, phaseName, spy_vs_sma150]
+
+// ============================================================================
+// CALCOLO E VISUALIZZAZIONE
+// ============================================================================
+
+[isBull, isBear, phaseColor, phaseName, spy_vs_sma150] = baselinePhase()
+
+// Background colorato
+bgcolor(phaseColor, title="Market Phase Background")
+
+// Labels per ogni cambio di anno
+var int lastYear = na
+currentYear = year(time)
+
+if barstate.islast or (not na(lastYear) and currentYear != lastYear)
+    labelText = str.tostring(currentYear) + ": " + phaseName
+    if not na(spy_vs_sma150)
+        labelText += "\nSMA150: " + str.tostring(spy_vs_sma150 * 100, "#.##") + "%"
+    
+    labelColor = isBull ? color.green : isBear ? color.red : color.gray
+    label.new(bar_index, high, labelText, 
+              style=label.style_label_down, 
+              color=labelColor, 
+              textcolor=color.white, 
+              size=size.small)
+
+if barstate.islast
+    lastYear := currentYear
+
+// Table con informazioni correnti
+var table infoTable = table.new(position.top_right, 2, 5, bgcolor=color.white, border_width=1)
+
+if barstate.islast
+    table.clear(infoTable)
+    table.cell(infoTable, 0, 0, "Anno", text_color=color.white, bgcolor=color.blue, text_size=size.normal)
+    table.cell(infoTable, 1, 0, str.tostring(currentYear), text_color=color.black, bgcolor=color.white, text_size=size.normal)
+    
+    table.cell(infoTable, 0, 1, "Fase", text_color=color.white, bgcolor=color.blue, text_size=size.normal)
+    cellColor = isBull ? color.new(color.green, 90) : isBear ? color.new(color.red, 90) : color.new(color.gray, 90)
+    textColor = isBull ? color.green : isBear ? color.red : color.gray
+    table.cell(infoTable, 1, 1, phaseName, text_color=textColor, bgcolor=cellColor, text_size=size.normal)
+    
+    table.cell(infoTable, 0, 2, "SMA150%", text_color=color.white, bgcolor=color.blue, text_size=size.normal)
+    table.cell(infoTable, 1, 2, not na(spy_vs_sma150) ? str.tostring(spy_vs_sma150 * 100, "#.##") + "%" : "N/A", 
+              text_color=color.black, bgcolor=color.white, text_size=size.normal)
+    
+    table.cell(infoTable, 0, 3, "Close", text_color=color.white, bgcolor=color.blue, text_size=size.normal)
+    table.cell(infoTable, 1, 3, str.tostring(close, "#.##"), text_color=color.black, bgcolor=color.white, text_size=size.normal)
+    
+    sma150Value = ta.sma(close, 150)
+    table.cell(infoTable, 0, 4, "SMA150", text_color=color.white, bgcolor=color.blue, text_size=size.normal)
+    table.cell(infoTable, 1, 4, not na(sma150Value) ? str.tostring(sma150Value, "#.##") : "N/A", 
+              text_color=color.black, bgcolor=color.white, text_size=size.normal)
+
+// Linee verticali per cambio anno
+var int prevYear = na
+if not na(currentYear) and (na(prevYear) or currentYear != prevYear)
+    line.new(bar_index, low, bar_index, high, color=color.new(color.blue, 95), width=1, style=line.style_dashed)
+    prevYear := currentYear
+
+// Plot delle medie mobili per riferimento
+plot(ta.ema(close, 30), "EMA30", color=color.orange, linewidth=1)
+plot(ta.sma(close, 150), "SMA150", color=color.blue, linewidth=2)
