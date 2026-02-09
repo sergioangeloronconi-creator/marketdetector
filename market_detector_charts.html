@@ -245,17 +245,19 @@
         }
         
         // Funzione per classificare Bull/Bear
+        // IMPORTANTE: Restituisce sempre BULL o BEAR, mai NEUTRAL
         function classificaBullBear(row, spy_vs_sma150, spy_vs_ema30, returns) {
             if (spy_vs_sma150 !== null && spy_vs_sma150 !== undefined) {
                 if (spy_vs_sma150 > 0) return 'BULL';
                 if (spy_vs_sma150 < 0) return 'BEAR';
-                return 'NEUTRAL';
+                // Se esattamente 0, usa il valore precedente o default BULL
+                return 'BULL'; // Forza BULL invece di NEUTRAL
             } else if (spy_vs_ema30 !== null && spy_vs_ema30 !== undefined) {
-                return spy_vs_ema30 > 0 ? 'BULL (EMA30)' : 'BEAR (EMA30)';
+                return spy_vs_ema30 > 0 ? 'BULL' : 'BEAR';
             } else if (returns !== null && returns !== undefined) {
-                return returns > 0 ? 'BULL (RET)' : 'BEAR (RET)';
+                return returns > 0 ? 'BULL' : 'BEAR';
             }
-            return 'BULL (DEF)';
+            return 'BULL'; // Default sempre BULL
         }
         
         // Funzione per raggruppare per anno
@@ -437,29 +439,51 @@
             const { dates, closes, sma150, ema30, spy_vs_sma150 } = vars;
             
             // Grafico 1: Prezzo con background colorato
-            const phases = closes.map((close, i) => 
-                classificaBullBear({}, spy_vs_sma150[i], null, null)
-            );
+            // Classifica ogni punto come BULL o BEAR (niente NEUTRAL)
+            const phases = closes.map((close, i) => {
+                const phase = classificaBullBear({}, spy_vs_sma150[i], null, null);
+                // Forza BULL o BEAR (niente NEUTRAL)
+                if (phase === 'NEUTRAL') {
+                    // Se esattamente su SMA150, usa il valore precedente o default BULL
+                    return i > 0 ? phases[i-1] : 'BULL';
+                }
+                return phase.includes('BULL') ? 'BULL' : 'BEAR';
+            });
             
+            // Crea zone continue senza gap - ogni punto deve avere un colore
             const bullZones = [];
             const bearZones = [];
             let currentZone = null;
-            let zoneStart = null;
+            let zoneStart = 0;
             
             phases.forEach((phase, i) => {
-                const isBull = phase.includes('BULL');
-                if (currentZone !== isBull) {
-                    if (currentZone !== null && zoneStart !== null) {
-                        if (currentZone) {
-                            bullZones.push({ start: dates[zoneStart], end: dates[i-1] });
-                        } else {
-                            bearZones.push({ start: dates[zoneStart], end: dates[i-1] });
-                        }
+                const isBull = phase === 'BULL';
+                
+                // Se cambia la fase, chiudi la zona precedente e inizia una nuova
+                if (currentZone !== null && currentZone !== isBull) {
+                    if (currentZone) {
+                        bullZones.push({ start: dates[zoneStart], end: dates[i-1] });
+                    } else {
+                        bearZones.push({ start: dates[zoneStart], end: dates[i-1] });
                     }
+                    zoneStart = i;
+                }
+                
+                // Se è la prima iterazione, inizializza
+                if (currentZone === null) {
                     currentZone = isBull;
                     zoneStart = i;
                 }
             });
+            
+            // Chiudi l'ultima zona
+            if (currentZone !== null && zoneStart < dates.length) {
+                if (currentZone) {
+                    bullZones.push({ start: dates[zoneStart], end: dates[dates.length - 1] });
+                } else {
+                    bearZones.push({ start: dates[zoneStart], end: dates[dates.length - 1] });
+                }
+            }
             
             const trace1 = {
                 x: dates,
@@ -488,32 +512,49 @@
                 line: { color: 'orange', width: 1 }
             };
             
+            // Crea shapes per coprire tutto il periodo senza gap
+            const allShapes = [];
+            
+            // Aggiungi zone BULL (verde)
+            bullZones.forEach(zone => {
+                allShapes.push({
+                    type: 'rect',
+                    xref: 'x',
+                    yref: 'paper',
+                    x0: zone.start,
+                    x1: zone.end,
+                    y0: 0,
+                    y1: 1,
+                    fillcolor: 'rgba(76, 175, 80, 0.25)', // Verde più visibile
+                    line: { width: 0 },
+                    layer: 'below'
+                });
+            });
+            
+            // Aggiungi zone BEAR (rosso)
+            bearZones.forEach(zone => {
+                allShapes.push({
+                    type: 'rect',
+                    xref: 'x',
+                    yref: 'paper',
+                    x0: zone.start,
+                    x1: zone.end,
+                    y0: 0,
+                    y1: 1,
+                    fillcolor: 'rgba(244, 67, 54, 0.25)', // Rosso più visibile
+                    line: { width: 0 },
+                    layer: 'below'
+                });
+            });
+            
             Plotly.newPlot('chart1', [trace1, trace2, trace3], {
                 title: 'SPY con Classificazione Bull/Bear',
                 xaxis: { title: 'Data' },
                 yaxis: { title: 'Prezzo ($)' },
                 hovermode: 'x unified',
-                shapes: bullZones.map(zone => ({
-                    type: 'rect',
-                    xref: 'x',
-                    yref: 'paper',
-                    x0: zone.start,
-                    x1: zone.end,
-                    y0: 0,
-                    y1: 1,
-                    fillcolor: 'rgba(76, 175, 80, 0.2)',
-                    line: { width: 0 }
-                })).concat(bearZones.map(zone => ({
-                    type: 'rect',
-                    xref: 'x',
-                    yref: 'paper',
-                    x0: zone.start,
-                    x1: zone.end,
-                    y0: 0,
-                    y1: 1,
-                    fillcolor: 'rgba(244, 67, 54, 0.2)',
-                    line: { width: 0 }
-                })))
+                shapes: allShapes,
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white'
             });
             
             // Grafico 2: Percentuale SPY vs SMA150
