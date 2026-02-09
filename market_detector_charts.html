@@ -578,6 +578,7 @@
             const allShapes = [];
             
             // Aggiungi zone BULL (verde) - ordinate per data
+            // Verde più saturo e puro: RGB(46, 125, 50) - Material Design Green 700
             bullZones.sort((a, b) => new Date(a.start) - new Date(b.start)).forEach(zone => {
                 allShapes.push({
                     type: 'rect',
@@ -587,7 +588,7 @@
                     x1: zone.end,
                     y0: 0,
                     y1: 1,
-                    fillcolor: 'rgba(76, 175, 80, 0.45)', // Verde intensificato
+                    fillcolor: 'rgba(46, 125, 50, 0.45)', // Verde più verde e saturo
                     line: { width: 0 },
                     layer: 'below',
                     opacity: 1
@@ -595,6 +596,7 @@
             });
             
             // Aggiungi zone BEAR (rosso) - ordinate per data
+            // Rosso più saturo e puro: RGB(198, 40, 40) - Material Design Red 700
             bearZones.sort((a, b) => new Date(a.start) - new Date(b.start)).forEach(zone => {
                 allShapes.push({
                     type: 'rect',
@@ -604,7 +606,7 @@
                     x1: zone.end,
                     y0: 0,
                     y1: 1,
-                    fillcolor: 'rgba(244, 67, 54, 0.45)', // Rosso intensificato
+                    fillcolor: 'rgba(198, 40, 40, 0.45)', // Rosso più rosso e saturo
                     line: { width: 0 },
                     layer: 'below',
                     opacity: 1
