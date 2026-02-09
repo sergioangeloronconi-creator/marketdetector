@@ -139,11 +139,12 @@
         <div class="content">
             <div class="info-box">
                 <strong>💡 Istruzioni:</strong> Questo grafico mostra la classificazione Bull/Bear anno per anno basata su SMA150. 
-                I dati vengono caricati da Yahoo Finance. Se i grafici non si caricano, verifica la connessione internet.
+                I dati vengono caricati da <strong>Financial Modeling Prep API</strong>. Se i grafici non si caricano, verifica la connessione internet e la validità della API key.
             </div>
             
             <div id="loading" class="loading">
-                Caricamento dati SPY in corso... ⏳
+                Caricamento dati SPY da Financial Modeling Prep API... ⏳<br>
+                <small id="loadingStatus" style="color: #999; margin-top: 10px; display: block;"></small>
             </div>
             
             <div id="charts" style="display: none;">
@@ -186,6 +187,7 @@
         <div class="footer">
             <p>Market Detector - Q-Mentor Framework | Versione Ufficiale</p>
             <p>Logica: SMA150 come discriminante principale (BULL: SPY > SMA150, BEAR: SPY < SMA150)</p>
+            <p>Dati forniti da <strong>Financial Modeling Prep API</strong></p>
         </div>
     </div>
 
@@ -306,25 +308,80 @@
             return summary;
         }
         
-        // Carica dati da Yahoo Finance (usando API pubblica)
+        // API Key Financial Modeling Prep
+        const FMP_API_KEY = '59SIlu0tSse4YaQnAuRF1jS1KzgZWPSS';
+        
+        // Carica dati da Financial Modeling Prep API
         async function caricaDatiSPY() {
             try {
-                // Usa un proxy CORS o API alternativa
-                const response = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/SPY?interval=1d&range=20y');
+                // Calcola date: ultimi 20 anni
+                const endDate = new Date();
+                const startDate = new Date();
+                startDate.setFullYear(endDate.getFullYear() - 20);
+                
+                const fromDate = startDate.toISOString().split('T')[0];
+                const toDate = endDate.toISOString().split('T')[0];
+                
+                // Endpoint FMP per dati storici giornalieri
+                const url = `https://financialmodelingprep.com/api/v3/historical-price-full/SPY?from=${fromDate}&to=${toDate}&apikey=${FMP_API_KEY}`;
+                
+                console.log('Caricamento dati da FMP API...');
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
                 
-                const timestamps = data.chart.result[0].timestamp;
-                const closes = data.chart.result[0].indicators.quote[0].close;
+                // FMP restituisce: { symbol: "SPY", historical: [...] }
+                if (!data.historical || data.historical.length === 0) {
+                    throw new Error('Nessun dato storico disponibile');
+                }
                 
-                const formattedData = timestamps.map((ts, i) => ({
-                    date: new Date(ts * 1000).toISOString().split('T')[0],
-                    close: closes[i]
-                })).filter(d => d.close !== null);
+                // Formatta i dati FMP nel formato atteso
+                // FMP formato: { date: "2024-01-15", close: 450.25, ... }
+                const formattedData = data.historical
+                    .map(item => ({
+                        date: item.date,
+                        close: item.close
+                    }))
+                    .filter(d => d.close !== null && d.close !== undefined)
+                    .sort((a, b) => new Date(a.date) - new Date(b.date)); // Ordina per data crescente
+                
+                console.log(`Dati caricati: ${formattedData.length} barre da ${formattedData[0].date} a ${formattedData[formattedData.length - 1].date}`);
                 
                 return formattedData;
             } catch (error) {
-                console.error('Errore nel caricamento dati:', error);
-                // Dati di esempio per demo
+                console.error('Errore nel caricamento dati FMP:', error);
+                console.log('Tentativo con endpoint alternativo (senza range date)...');
+                
+                // Fallback: prova senza range date (ultimi dati disponibili)
+                try {
+                    const urlFallback = `https://financialmodelingprep.com/api/v3/historical-price-full/SPY?apikey=${FMP_API_KEY}`;
+                    const responseFallback = await fetch(urlFallback);
+                    
+                    if (responseFallback.ok) {
+                        const dataFallback = await responseFallback.json();
+                        if (dataFallback.historical && dataFallback.historical.length > 0) {
+                            const formattedData = dataFallback.historical
+                                .map(item => ({
+                                    date: item.date,
+                                    close: item.close
+                                }))
+                                .filter(d => d.close !== null && d.close !== undefined)
+                                .sort((a, b) => new Date(a.date) - new Date(b.date));
+                            
+                            console.log(`Dati caricati (fallback): ${formattedData.length} barre`);
+                            return formattedData;
+                        }
+                    }
+                } catch (fallbackError) {
+                    console.error('Errore anche nel fallback:', fallbackError);
+                }
+                
+                // Ultimo fallback: dati di esempio
+                console.warn('Uso dati di esempio per demo');
                 return generateSampleData();
             }
         }
@@ -536,14 +593,29 @@
         
         // Carica e visualizza dati
         async function init() {
-            const data = await caricaDatiSPY();
-            const vars = calcolaVariabiliStrutturali(data);
-            const summary = riepilogoAnnoPerAnno(data, vars.spy_vs_sma150, vars.closes);
+            const loadingStatus = document.getElementById('loadingStatus');
             
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('charts').style.display = 'block';
-            
-            creaGrafici(data, vars, summary);
+            try {
+                loadingStatus.textContent = 'Connessione a Financial Modeling Prep API...';
+                const data = await caricaDatiSPY();
+                
+                loadingStatus.textContent = 'Calcolo variabili strutturali (EMA30, SMA150)...';
+                const vars = calcolaVariabiliStrutturali(data);
+                
+                loadingStatus.textContent = 'Generazione riepilogo anno per anno...';
+                const summary = riepilogoAnnoPerAnno(data, vars.spy_vs_sma150, vars.closes);
+                
+                loadingStatus.textContent = 'Creazione grafici interattivi...';
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('charts').style.display = 'block';
+                
+                creaGrafici(data, vars, summary);
+                
+                console.log('✅ Grafici caricati con successo!');
+            } catch (error) {
+                loadingStatus.textContent = '❌ Errore: ' + error.message;
+                console.error('Errore durante l\'inizializzazione:', error);
+            }
         }
         
         // Avvia al caricamento
