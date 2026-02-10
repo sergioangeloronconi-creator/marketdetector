@@ -204,42 +204,141 @@ distribuzionePhase() =>
 [isDistribution, distributionColor] = distribuzionePhase()
 
 // ============================================================================
-// DETERMINAZIONE FASE FINALE PER DECISION LAYER
-// IMPORTANTE: La fase determinata qui è quella comunicata al Decision Layer
-// Priorità: Capitulation (7) > Crash (6) > Accumulazione (5) > Recovery (4) 
-//           > Distribuzione (3) > Lateralità (2) > Baseline (1)
+// COMUNICAZIONE MULTILIVELLO AL DECISION LAYER
+// Gerarchia Costituzionale - Vedi: MANIFESTO_GERARCHIA.md
+// Ordine: LIVELLO 0 → LIVELLO 1 → LIVELLO 2 → LIVELLO 3 → LIVELLO 4 → Transition
 // ============================================================================
 
-// Determina fase finale (per Decision Layer) e colore (per visualizzazione)
-finalColor = na
-md_phase = ""  // Fase comunicata al Decision Layer
+// ============================================================================
+// 🔴 LIVELLO 0 — EVENTI SISTEMICI (AUTORITÀ ASSOLUTA)
+// ============================================================================
 
-// Applicazione priorità (dalla più alta alla più bassa)
-// NOTA: Quando LATERAL è attiva, viene comunicata "LATERAL" al Decision Layer,
-//       NON Bull o Bear, anche se Bull/Bear sono tecnicamente attive in background
+md_level_0_event = "NONE"  // CRASH, CAPITULATION, NONE
+
+// Se LIVELLO 0 è attivo → tutti gli altri livelli sono informativi ma non rilevanti
 if not na(capitulationColor)
-    finalColor := capitulationColor
-    md_phase := "CAPITULATION"
+    md_level_0_event := "CAPITULATION"
 else if not na(crashColor)
-    finalColor := crashColor
-    md_phase := "CRASH"
-else if not na(accumulationColor)
-    finalColor := accumulationColor
-    md_phase := "ACCUMULATION"
-else if not na(recoveryColor)
-    finalColor := recoveryColor
-    md_phase := "RECOVERY"
-else if not na(distributionColor)
-    finalColor := distributionColor
-    md_phase := "DISTRIBUTION"
-else if not na(lateralColor)
-    // LATERAL ha precedenza su Bull/Bear - questa è la fase comunicata al Decision Layer
-    finalColor := lateralColor
-    md_phase := "LATERAL"
+    md_level_0_event := "CRASH"
+
+// ============================================================================
+// 🟠 LIVELLO 1 — REGIME STRUTTURALE (SPINA DORSALE)
+// Mutualmente esclusivi: solo uno stato può essere attivo alla volta
+// ============================================================================
+
+md_phase = ""  // Regime strutturale: BULL, BEAR, LATERAL, RECOVERY
+
+// Determina regime strutturale (solo se LIVELLO 0 non è attivo)
+if md_level_0_event != "NONE"
+    // LIVELLO 0 ha autorità assoluta - regime è informativo ma non rilevante
+    md_phase := isBull ? "BULL" : "BEAR"  // Informativo
 else
-    // Baseline (Bull/Bear) - solo se nessuna altra fase è attiva
-    finalColor := baselineColor
-    md_phase := isBull ? "BULL" : "BEAR"
+    // LIVELLO 1: Regime strutturale (mutualmente esclusivi)
+    if not na(recoveryColor)
+        md_phase := "RECOVERY"
+    else if not na(lateralColor)
+        // LATERAL ha precedenza su Bull/Bear
+        md_phase := "LATERAL"
+    else
+        // Baseline (Bull/Bear)
+        md_phase := isBull ? "BULL" : "BEAR"
+
+// ============================================================================
+// 🟡 LIVELLO 2 — EVENTI LOCALI DI STRESS
+// ============================================================================
+
+md_level_2_event = "NONE"  // LoCE, LOCAL_CAPITULATION, NONE
+
+// TODO: Implementare quando fase LoCE sarà sviluppata
+// Possono apparire in Bull, Bear o Lateral
+// Non cambiano il regime
+
+// ============================================================================
+// 🟢 LIVELLO 3 — PROCESSI DI RISCHIO SISTEMICO
+// ⚠️ IMPORTANTE: Accumulation/Distribution NON sono fasi, sono PROCESSI
+// ============================================================================
+
+md_process = "NONE"  // Processo latente: DISTRIBUTION, ACCUMULATION, NONE
+
+// Determina processo latente (può coesistere con LIVELLO 1)
+// NOTA: md_process può coesistere con md_phase (non si escludono)
+if not na(distributionColor)
+    md_process := "DISTRIBUTION"
+else if not na(accumulationColor)
+    md_process := "ACCUMULATION"
+// else rimane "NONE"
+
+// ============================================================================
+// 🔵 LIVELLO 4 — ROTAZIONE SETTORIALE
+// ============================================================================
+
+sector_rotation = false  // Rotazione settoriale in atto
+sector_rotation_type = "none"  // Tipo: "ciclica", "difensiva", "growth", "none"
+
+// TODO: Implementare quando dati settoriali disponibili
+// La rotazione NON implica né accumulazione né distribuzione
+
+// ============================================================================
+// ⚪ LIVELLO 5 — QUALIFICATORI
+// ============================================================================
+
+// TODO: Implementare qualificatori (intensità, persistenza, confidence)
+
+// ============================================================================
+// STATO DI TRANSIZIONE (DERIVATO)
+// md_transition = TRUE se LIVELLO 3 ≠ NONE e incoerente con LIVELLO 1
+// ============================================================================
+
+md_transition = false  // Transizione tra fasi in atto
+
+// Transizione derivata: Bull + Distribution → Transition
+//                      Bear + Accumulation → Transition
+if md_process != "NONE" and md_phase != ""
+    // Bull + Distribution → Transition
+    if md_phase == "BULL" and md_process == "DISTRIBUTION"
+        md_transition := true
+    // Bear + Accumulation → Transition
+    else if md_phase == "BEAR" and md_process == "ACCUMULATION"
+        md_transition := true
+
+// ============================================================================
+// DETERMINAZIONE COLORE FINALE (per visualizzazione)
+// ============================================================================
+
+finalColor = na
+
+// LIVELLO 0 ha autorità assoluta (sovrascrive tutto visivamente)
+if md_level_0_event == "CAPITULATION"
+    finalColor := capitulationColor
+else if md_level_0_event == "CRASH"
+    finalColor := crashColor
+// LIVELLO 1: Regime strutturale
+else if md_phase == "RECOVERY"
+    finalColor := recoveryColor
+else if md_phase == "LATERAL"
+    finalColor := lateralColor
+else if md_phase == "BULL"
+    finalColor := baselineColor  // Verde
+else if md_phase == "BEAR"
+    finalColor := baselineColor  // Rosso
+
+// ============================================================================
+// OUTPUT MULTILIVELLO COMPLETO PER DECISION LAYER
+// ============================================================================
+// 
+// Struttura output (VINCOLANTE):
+// {
+//   "md_level_0_event": "CRASH|CAPITULATION|NONE",      // LIVELLO 0
+//   "md_phase": "BULL|BEAR|LATERAL|RECOVERY",          // LIVELLO 1
+//   "md_level_2_event": "LoCE|LOCAL_CAPITULATION|NONE", // LIVELLO 2
+//   "md_process": "ACCUMULATION|DISTRIBUTION|NONE",    // LIVELLO 3
+//   "sector_rotation": true|false,                      // LIVELLO 4
+//   "sector_rotation_type": "ciclica|difensiva|none",   // LIVELLO 4
+//   "md_transition": true|false                         // Derivato
+// }
+//
+// Ordine di comunicazione: LIVELLO 0 → LIVELLO 1 → LIVELLO 2 → LIVELLO 3 → LIVELLO 4 → Transition
+// Vedi: MANIFESTO_GERARCHIA.md per gerarchia costituzionale completa
 
 // Applicazione colore di background
 bgcolor(finalColor, title="Market Phase Background")
