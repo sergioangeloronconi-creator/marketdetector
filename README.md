@@ -52,6 +52,7 @@ La gerarchia del Market Detector è organizzata in 5 livelli + transizione deriv
 **Fasi Congelate:**
 - ✅ Bull/Bear (LIVELLO 1) - CONGELATA
 - ✅ LATERAL (LIVELLO 1) - CONGELATA v2.1 FINAL
+- ✅ RECOVERY (LIVELLO 1) - CONGELATA (Concetto v1.0 FINAL)
 
 **Regola fondamentale:** Nessun livello può sovrascrivere un livello superiore.
 

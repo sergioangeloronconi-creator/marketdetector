@@ -240,6 +240,7 @@ if md_level_0_event != "NONE"
     md_phase := isBull ? "BULL" : "BEAR"  // Informativo
 else
     // LIVELLO 1: Regime strutturale (mutualmente esclusivi)
+    // RECOVERY: Fase strutturale congelata (concetto) - Vedi FASE_RECOVERY_FROZEN.md
     if not na(recoveryColor)
         md_phase := "RECOVERY"
     else if not na(lateralColor)
