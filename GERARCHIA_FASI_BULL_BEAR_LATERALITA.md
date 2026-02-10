@@ -1,9 +1,17 @@
-# Gerarchia delle Fasi - Market Detector
+# Gerarchia Fasi Bull/Bear - Lateralità
 
-**Versione:** 1.0 - Ufficiale  
-**Data:** 2026-02-09  
-**Status:** PRODUZIONE - RIFERIMENTO UFFICIALE  
+**Versione:** 1.0 - Congelata  
+**Data Congelamento:** 2026-02-09  
+**Status:** FROZEN - PRODUZIONE - NON MODIFICARE SENZA APPROVAZIONE  
 **Q-Mentor Framework - Market Detector**
+
+**🔒 DOCUMENTO CONGELATO**
+
+Questo documento descrive la gerarchia tra le fasi attualmente congelate:
+- Fase Bull/Bear (Priorità 1)
+- Fase Lateralità (Priorità 2)
+
+Il documento verrà esteso man mano che altre fasi verranno congelate.
 
 ---
 
@@ -201,4 +209,22 @@ La priorità è **assoluta** e **non negoziabile**:
 
 ---
 
-**Q-Mentor Framework | Market Detector | Gerarchia Fasi v1.0 - UFFICIALE**
+---
+
+## 🔒 CONGELAMENTO
+
+**Versione:** 1.0  
+**Data Congelamento:** 2026-02-09  
+**Status:** FROZEN - CONGELATO
+
+Questo documento è **congelato** e rappresenta la verità operativa per la gerarchia tra:
+- Fase Bull/Bear (Priorità 1) - CONGELATA
+- Fase Lateralità (Priorità 2) - CONGELATA
+
+**NON MODIFICARE SENZA APPROVAZIONE FORMALE.**
+
+Il documento verrà esteso quando altre fasi verranno congelate, ma questa sezione rimane invariata.
+
+---
+
+**Q-Mentor Framework | Market Detector | Gerarchia Fasi Bull/Bear - Lateralità v1.0 - CONGELATA**

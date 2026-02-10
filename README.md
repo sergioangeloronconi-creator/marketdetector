@@ -49,7 +49,7 @@ Dal più debole al più forte:
 
 In caso di conflitto: **vince sempre la fase con priorità più alta**.
 
-**📖 Documentazione completa:** Vedi `GERARCHIA_FASI.md` per dettagli su:
+**📖 Documentazione completa:** Vedi `GERARCHIA_FASI_BULL_BEAR_LATERALITA.md` per dettagli su:
 - Comportamento sovrascrittura (visivo e sistema)
 - Regole di comunicazione al Decision Layer
 - Esempi pratici
