@@ -9,6 +9,12 @@
 
 **IMPORTANTE:** La fase LATERAL ha **precedenza su Bear e Bull** (Priorità 2 > Priorità 1)
 
+**CRITICO - COMUNICAZIONE AL DECISION LAYER:**
+- Quando LATERAL è attiva, la fase comunicata al Decision Layer è **"LATERAL"**
+- **NON** viene comunicato Bull o Bear, anche se tecnicamente attivi in background
+- Questo è un comportamento a livello di sistema, non solo visivo
+- La LATERAL funge da **gate di contesto** che impedisce decisioni direzionali
+
 ---
 
 ## 🔒 DECISIONE STRATEGICA
@@ -47,8 +53,9 @@ La LATERAL è una fase primaria del Market Detector e ha il solo compito di:
 ### 1. Fase Primaria
 
 - La LATERAL è allo stesso livello di Bull / Bear
-- **Sovrascrive Bull/Bear quando attiva**
+- **Sovrascrive Bull/Bear quando attiva** (sia visivamente che a livello di sistema)
 - Priorità: 2 (superiore a Baseline, inferiore a fasi avanzate)
+- **Comunicazione al Decision Layer:** Quando LATERAL è attiva, viene comunicata "LATERAL", NON Bull/Bear
 
 ### 2. Stato Persistente
 

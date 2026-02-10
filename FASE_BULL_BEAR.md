@@ -21,6 +21,12 @@ La **Fase Bull e Bear** è la **FASE 0 - BASELINE** del Market Detector. È semp
   - **BULL Market** → Verde RGB(46, 125, 50) con opacità 0.45
   - **BEAR Market** → Rosso RGB(198, 40, 40) con opacità 0.45
 
+**IMPORTANTE - SOVRASCRITTURA DA LATERAL:**
+- Quando la fase LATERAL (Priorità 2) è attiva, **sovrascrive Bull/Bear a livello di sistema**
+- La fase comunicata al Decision Layer sarà **"LATERAL"**, NON "BULL" o "BEAR"
+- Bull/Bear rimangono attivi in background ma non vengono comunicati al Decision Layer
+- Questo è un comportamento architetturale, non solo visivo
+
 ---
 
 ## 🔧 Logica Ufficiale Q-Mentor

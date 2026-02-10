@@ -203,26 +203,43 @@ distribuzionePhase() =>
 [isAccumulation, accumulationColor] = accumulazionePhase()
 [isDistribution, distributionColor] = distribuzionePhase()
 
-// Determinazione colore finale basato su priorità
+// ============================================================================
+// DETERMINAZIONE FASE FINALE PER DECISION LAYER
+// IMPORTANTE: La fase determinata qui è quella comunicata al Decision Layer
 // Priorità: Capitulation (7) > Crash (6) > Accumulazione (5) > Recovery (4) 
 //           > Distribuzione (3) > Lateralità (2) > Baseline (1)
+// ============================================================================
+
+// Determina fase finale (per Decision Layer) e colore (per visualizzazione)
 finalColor = na
+md_phase = ""  // Fase comunicata al Decision Layer
 
 // Applicazione priorità (dalla più alta alla più bassa)
+// NOTA: Quando LATERAL è attiva, viene comunicata "LATERAL" al Decision Layer,
+//       NON Bull o Bear, anche se Bull/Bear sono tecnicamente attive in background
 if not na(capitulationColor)
     finalColor := capitulationColor
+    md_phase := "CAPITULATION"
 else if not na(crashColor)
     finalColor := crashColor
+    md_phase := "CRASH"
 else if not na(accumulationColor)
     finalColor := accumulationColor
+    md_phase := "ACCUMULATION"
 else if not na(recoveryColor)
     finalColor := recoveryColor
+    md_phase := "RECOVERY"
 else if not na(distributionColor)
     finalColor := distributionColor
+    md_phase := "DISTRIBUTION"
 else if not na(lateralColor)
+    // LATERAL ha precedenza su Bull/Bear - questa è la fase comunicata al Decision Layer
     finalColor := lateralColor
+    md_phase := "LATERAL"
 else
+    // Baseline (Bull/Bear) - solo se nessuna altra fase è attiva
     finalColor := baselineColor
+    md_phase := isBull ? "BULL" : "BEAR"
 
 // Applicazione colore di background
 bgcolor(finalColor, title="Market Phase Background")
