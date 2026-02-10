@@ -1,0 +1,23 @@
+//@version=6
+// FASE 1 — LATERALITÀ / RANGE
+// Priorità: 2
+// Colore: Grigio
+// Sovrascrive Bull/Bear visivamente
+
+// Funzione per determinare fase di Lateralità
+// Restituisce: [isLateral, color]
+lateralitaPhase() =>
+    // Logica: mercato non direzionale, compressione, perdita di trend
+    // TODO: Implementare logica specifica per determinare lateralità
+    
+    // Esempio: range ristretto e volatilità bassa
+    atrValue = ta.atr(14)
+    atrPercent = (atrValue / close) * 100
+    
+    // Range ristretto (es. ATR < 2% del prezzo)
+    isLateral = atrPercent < 2.0
+    
+    // Colore: Grigio
+    phaseColor = isLateral ? color.new(color.gray, 70) : na
+    
+    [isLateral, phaseColor]

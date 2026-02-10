@@ -1,23 +1,248 @@
 //@version=6
-// FASE 1 — LATERALITÀ / RANGE
-// Priorità: 2
+// FASE 1 — LATERALITÀ / RANGE v2.1 FINAL (FROZEN)
+// Priorità: 2 (sovrascrive Bull/Bear)
 // Colore: Grigio
-// Sovrascrive Bull/Bear visivamente
+// VERSIONE CONGELATA - NON MODIFICARE SENZA APPROVAZIONE
+// Q-Mentor Framework - Market Detector
 
-// Funzione per determinare fase di Lateralità
-// Restituisce: [isLateral, color]
+// ============================================================================
+// CONFIGURAZIONE PARAMETRI (CONGELATI)
+// ============================================================================
+
+ENTRY_BARS = 3        // Barre consecutive valide per CANDIDATE
+CONFIRM_BARS = 2      // Barre in CANDIDATE per CONFIRMED
+EXIT_BARS = 3         // Barre violate per EXIT_CANDIDATE (uscita standard)
+EXIT_BARS_CORE = 2    // Barre violate per EXIT_CANDIDATE (violazione core)
+MIN_DURATION = 2      // Durata minima regime (isteresi)
+
+// Exit dinamico
+MOVEMENT_THRESHOLD = 0.02  // 2% movimento assoluto
+
+// Core conditions (necessarie)
+NET_MOVE_THRESHOLD = 0.025      // 2.5% in 20 giorni
+TREND_EFFICIENCY_THRESHOLD = 0.30  // 30%
+
+// Additional conditions (almeno 2/3)
+SMA150_PROXIMITY_THRESHOLD = 0.035  // ±3.5% da SMA150
+CROSSES_THRESHOLD = 3              // Almeno 3 incroci
+RANGE_ATR_THRESHOLD = 5.0           // Range/ATR ratio
+
+// Smoothing
+SMOOTHING_WINDOW = 5  // Media mobile 5 barre
+
+// ============================================================================
+// ENUM STATI (simulati con variabili)
+// ============================================================================
+
+// NOT_LATERAL = 0
+// CANDIDATE = 1
+// CONFIRMED = 2
+// EXIT_CANDIDATE = 3
+
+// ============================================================================
+// CALCOLO METRICHE LATERAL v2.1
+// ============================================================================
+
+calcolaMetricheLateral() =>
+    // Returns
+    returns = ta.change(close) / close[1]
+    abs_returns = math.abs(returns)
+    
+    // ASSE 1: DIREZIONALITÀ
+    // 1. Net move 20 giorni
+    net_move_20 = (close - close[20]) / close[20]
+    
+    // 2. Trend efficiency
+    sum_abs_moves_20 = math.sum(abs_returns, 20)
+    trend_efficiency = math.abs(net_move_20) / sum_abs_moves_20
+    trend_efficiency := na(trend_efficiency) ? 1.0 : trend_efficiency
+    
+    // ASSE 2: COMPRESSIONE/DISORDINE
+    // 3. Prossimità SMA150
+    ema30 = ta.ema(close, 30)
+    sma150 = ta.sma(close, 150)
+    spy_vs_sma150 = na(sma150) ? na : (close - sma150) / sma150
+    sma150_proximity = math.abs(spy_vs_sma150)
+    
+    // 4. Crosses density (stabilizzata)
+    spy_above_ema30 = close > ema30
+    spy_cross_ema30 = spy_above_ema30 != spy_above_ema30[1] ? 1 : 0
+    
+    ema30_above_sma150 = ema30 > sma150
+    ema30_cross_sma150 = ema30_above_sma150 != ema30_above_sma150[1] ? 1 : 0
+    
+    crosses_spy_ema30_20 = math.sum(spy_cross_ema30, 20)
+    crosses_ema30_sma150_20 = math.sum(ema30_cross_sma150, 20)
+    total_crosses_20 = crosses_spy_ema30_20 + crosses_ema30_sma150_20
+    
+    // Smoothing crosses density
+    crosses_density_smooth = ta.sma(total_crosses_20, SMOOTHING_WINDOW)
+    
+    // 5. Range/ATR ratio (stabilizzato)
+    high_low = high - low
+    high_close = math.abs(high - close[1])
+    low_close = math.abs(low - close[1])
+    true_range = math.max(high_low, math.max(high_close, low_close))
+    atr_20 = ta.sma(true_range, 20)
+    range_20 = ta.highest(high, 20) - ta.lowest(low, 20)
+    range_atr_ratio = range_20 / atr_20
+    
+    // Smoothing range/ATR ratio
+    range_atr_ratio_smooth = ta.sma(range_atr_ratio, SMOOTHING_WINDOW)
+    
+    [net_move_20, trend_efficiency, sma150_proximity, crosses_density_smooth, range_atr_ratio_smooth, total_crosses_20, range_atr_ratio]
+
+// ============================================================================
+// DETECTION (funzione pura)
+// ============================================================================
+
+detectLateral(net_move_20, trend_efficiency, sma150_proximity, crosses_density_smooth, range_atr_ratio_smooth, total_crosses_20, range_atr_ratio) =>
+    // Verifica disponibilità SMA150
+    sma150 = ta.sma(close, 150)
+    if na(sma150)
+        [false, false]
+    else
+        // CORE CONDITIONS (NECESSARIE - entrambe devono essere vere)
+        abs_net_move_20 = math.abs(net_move_20)
+        low_net_move = abs_net_move_20 < NET_MOVE_THRESHOLD
+        low_trend_eff = trend_efficiency < TREND_EFFICIENCY_THRESHOLD
+        
+        core_valid = low_net_move and low_trend_eff
+        core_violated = not core_valid
+        
+        if not core_valid
+            [false, core_violated]
+        else
+            // ADDITIONAL CONDITIONS (almeno 2/3 devono essere vere)
+            near_sma150 = sma150_proximity < SMA150_PROXIMITY_THRESHOLD
+            
+            // Usa smoothed se disponibile, altrimenti raw
+            crosses_density = na(crosses_density_smooth) ? total_crosses_20 : crosses_density_smooth
+            high_crosses = crosses_density >= CROSSES_THRESHOLD
+            
+            // Usa smoothed se disponibile, altrimenti raw
+            range_atr = na(range_atr_ratio_smooth) ? range_atr_ratio : range_atr_ratio_smooth
+            low_range_atr = range_atr < RANGE_ATR_THRESHOLD
+            
+            // Conta condizioni additional
+            additional_count = (near_sma150 ? 1 : 0) + (high_crosses ? 1 : 0) + (low_range_atr ? 1 : 0)
+            additional_valid = additional_count >= 2
+            
+            is_detected = core_valid and additional_valid
+            [is_detected, core_violated]
+
+// ============================================================================
+// STATE MACHINE (gestione regime persistente)
+// ============================================================================
+
+// Variabili di stato persistenti
+var int state = 0  // 0=NOT_LATERAL, 1=CANDIDATE, 2=CONFIRMED, 3=EXIT_CANDIDATE
+var int consecutive_valid = 0
+var int consecutive_invalid = 0
+var int duration = 0
+var int candidate_duration = 0
+var float entry_price = na
+var int exit_reason = 0  // 0=NONE, 1=STANDARD_EXIT, 2=MOVEMENT_EXIT, 3=CORE_VIOLATION_EXIT
+
+updateStateMachine(is_detected, core_violated) =>
+    // Reset exit_reason all'inizio
+    exit_reason := 0
+    
+    if state == 0  // NOT_LATERAL
+        if is_detected
+            consecutive_valid += 1
+            if consecutive_valid >= ENTRY_BARS
+                state := 1  // CANDIDATE
+                consecutive_valid := 0
+                candidate_duration := 0
+        else
+            consecutive_valid := 0
+    
+    else if state == 1  // CANDIDATE
+        if is_detected
+            candidate_duration += 1
+            if candidate_duration >= CONFIRM_BARS
+                state := 2  // CONFIRMED
+                duration := CONFIRM_BARS
+                candidate_duration := 0
+                entry_price := close
+        else
+            // Violazione durante CANDIDATE → torna a NOT_LATERAL
+            state := 0
+            consecutive_valid := 0
+            candidate_duration := 0
+            duration := 0
+    
+    else if state == 2  // CONFIRMED
+        // EXIT DINAMICO: movimento significativo
+        if not na(entry_price)
+            movement_since_entry = math.abs((close - entry_price) / entry_price)
+            if movement_since_entry > MOVEMENT_THRESHOLD
+                // Movimento significativo → EXIT IMMEDIATO
+                state := 0
+                duration := 0
+                consecutive_invalid := 0
+                entry_price := na
+                exit_reason := 2  // MOVEMENT_EXIT
+                [state, exit_reason]
+        
+        if is_detected
+            duration += 1
+            consecutive_invalid := 0
+        else
+            consecutive_invalid += 1
+            // ISTERESI: Durata minima
+            if duration < MIN_DURATION
+                duration += 1
+            else
+                // EXIT ANTICIPATO: violazione core vs standard
+                if core_violated
+                    exit_bars_required = EXIT_BARS_CORE
+                    exit_reason := 3  // CORE_VIOLATION_EXIT
+                else
+                    exit_bars_required = EXIT_BARS
+                    exit_reason := 1  // STANDARD_EXIT
+                
+                if consecutive_invalid >= exit_bars_required
+                    state := 3  // EXIT_CANDIDATE
+                    consecutive_invalid := 0
+    
+    else if state == 3  // EXIT_CANDIDATE
+        if is_detected
+            // Ripristino condizioni → torna a CONFIRMED
+            state := 2
+            duration += 1
+            consecutive_invalid := 0
+            exit_reason := 0
+        else
+            // Conferma uscita → NOT_LATERAL
+            final_exit_reason = exit_reason != 0 ? exit_reason : 1
+            state := 0
+            duration := 0
+            consecutive_invalid := 0
+            entry_price := na
+            exit_reason := final_exit_reason
+    
+    [state, exit_reason]
+
+// ============================================================================
+// FUNZIONE PRINCIPALE LATERAL v2.1
+// ============================================================================
+
 lateralitaPhase() =>
-    // Logica: mercato non direzionale, compressione, perdita di trend
-    // TODO: Implementare logica specifica per determinare lateralità
+    // Calcola metriche
+    [net_move_20, trend_efficiency, sma150_proximity, crosses_density_smooth, range_atr_ratio_smooth, total_crosses_20, range_atr_ratio] = calcolaMetricheLateral()
     
-    // Esempio: range ristretto e volatilità bassa
-    atrValue = ta.atr(14)
-    atrPercent = (atrValue / close) * 100
+    // Detection (funzione pura)
+    [is_detected, core_violated] = detectLateral(net_move_20, trend_efficiency, sma150_proximity, crosses_density_smooth, range_atr_ratio_smooth, total_crosses_20, range_atr_ratio)
     
-    // Range ristretto (es. ATR < 2% del prezzo)
-    isLateral = atrPercent < 2.0
+    // State machine
+    [current_state, current_exit_reason] = updateStateMachine(is_detected, core_violated)
     
-    // Colore: Grigio
-    phaseColor = isLateral ? color.new(color.gray, 70) : na
+    // Determina se in LATERAL (CANDIDATE o CONFIRMED)
+    isLateral = current_state == 1 or current_state == 2
+    
+    // Colore: Grigio quando LATERAL attiva
+    phaseColor = isLateral ? color.new(color.gray, 60) : na
     
     [isLateral, phaseColor]

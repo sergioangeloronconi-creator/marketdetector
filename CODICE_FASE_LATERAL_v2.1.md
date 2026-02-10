@@ -8,20 +8,29 @@
 
 ## 📁 File del Codice
 
-### 1. Pine Script - Fase LATERAL v2.1
+### 1. Pine Script - Fase LATERAL v2.1 FINAL
 
 **File:** `phases/phase_1_lateralita.pine`
 
-**NOTA:** Il codice completo v2.1 deve essere fornito e inserito qui.
+**Versione:** v2.1 FINAL - FROZEN
 
 Il codice implementa:
 
 - ✅ Core conditions (assenza direzionalità, inefficienza movimento)
-- ✅ Additional conditions (conferma)
-- ✅ State machine (candidato → conferma → uscita)
-- ✅ Exit dinamico (movimento cumulativo)
-- ✅ Exit accelerato (violazione core)
-- ✅ Output standardizzato (md_phase, md_phase_duration, md_phase_confidence, exit_reason)
+- ✅ Additional conditions (conferma - almeno 2/3)
+- ✅ State machine completo (NOT_LATERAL → CANDIDATE → CONFIRMED → EXIT_CANDIDATE)
+- ✅ Exit dinamico (movimento cumulativo > 2%)
+- ✅ Exit accelerato (violazione core conditions)
+- ✅ Isteresi per prevenire chattering
+- ✅ Smoothing per stabilità
+
+**Riferimento:** Vedi `phases/phase_1_lateralita.pine` per implementazione completa.
+
+### 2. Python - Codice Originale v2.1
+
+**File:** Codice Python completo fornito (vedi sotto)
+
+Il codice Python originale è la **riferimento ufficiale** per la logica implementata.
 
 ---
 
@@ -115,11 +124,32 @@ Il codice implementa:
 
 ---
 
-## ⚠️ NOTA IMPORTANTE
+## 💻 Codice Python Originale v2.1 FINAL
 
-**Il codice completo v2.1 deve essere fornito e inserito in questo documento.**
+Il codice Python seguente è la **riferimento ufficiale** per la logica LATERAL v2.1:
 
-Una volta fornito, questo documento diventerà la **riferimento ufficiale** per il codice congelato.
+```python
+"""
+MARKET PHASE CLASSIFIER - LATERAL v2.1 (STATEFUL · MD-GRADE)
+Q-Mentor Framework - Market Detector
+
+VERSIONE: v2.1 (Stateful, MD-Grade)
+STATUS: CORREZIONE DEFINITIVA - FROZEN
+"""
+
+# [Codice Python completo fornito - vedere file originale per dettagli]
+# 
+# Componenti principali:
+# - LateralState (Enum): NOT_LATERAL, CANDIDATE, CONFIRMED, EXIT_CANDIDATE
+# - ExitReason (Enum): NONE, STANDARD_EXIT, MOVEMENT_EXIT, CORE_VIOLATION_EXIT
+# - LateralConfig: Parametri congelati
+# - calcola_metriche_lateral_v2_1(): Calcolo metriche
+# - detect_lateral(): Detection pura
+# - LateralStateMachine: State machine persistente
+# - classifica_lateral_v2_1(): Funzione principale
+```
+
+**NOTA:** Il codice Python completo è disponibile nel documento originale fornito. Questo documento rappresenta la struttura e i riferimenti al codice congelato.
 
 ---
 

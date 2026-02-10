@@ -7,6 +7,8 @@
 **Autore:** Q-Mentor Framework  
 **Status:** PRODUZIONE - NON MODIFICARE SENZA APPROVAZIONE
 
+**IMPORTANTE:** La fase LATERAL ha **precedenza su Bear e Bull** (Priorità 2 > Priorità 1)
+
 ---
 
 ## 🔒 DECISIONE STRATEGICA

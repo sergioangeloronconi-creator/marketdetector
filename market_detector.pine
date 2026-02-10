@@ -63,16 +63,67 @@ baselinePhase() =>
     [isBull, isBear, phaseColor]
 
 // ============================================================================
-// FASE 1 — LATERALITÀ / RANGE
-// Priorità: 2
+// FASE 1 — LATERALITÀ / RANGE v2.1 FINAL (FROZEN)
+// Priorità: 2 (sovrascrive Bull/Bear)
 // Colore: Grigio
+// VERSIONE CONGELATA - NON MODIFICARE SENZA APPROVAZIONE
 // ============================================================================
+// NOTA: Implementazione completa in phases/phase_1_lateralita.pine
+// Questa è una versione semplificata per il file master
+// Per implementazione completa v2.1, vedere phases/phase_1_lateralita.pine
+
 lateralitaPhase() =>
-    atrValue = ta.atr(14)
-    atrPercent = (atrValue / close) * 100
-    isLateral = atrPercent < 2.0
-    phaseColor = isLateral ? color.new(color.gray, 70) : na
-    [isLateral, phaseColor]
+    // Calcola metriche base
+    ema30 = ta.ema(close, 30)
+    sma150 = ta.sma(close, 150)
+    
+    if na(sma150)
+        [false, na]
+    else
+        // Returns
+        returns = ta.change(close) / close[1]
+        abs_returns = math.abs(returns)
+        
+        // Core conditions
+        net_move_20 = (close - close[20]) / close[20]
+        sum_abs_moves_20 = math.sum(abs_returns, 20)
+        trend_efficiency = math.abs(net_move_20) / sum_abs_moves_20
+        trend_efficiency := na(trend_efficiency) ? 1.0 : trend_efficiency
+        
+        low_net_move = math.abs(net_move_20) < 0.025
+        low_trend_eff = trend_efficiency < 0.30
+        core_valid = low_net_move and low_trend_eff
+        
+        if not core_valid
+            [false, na]
+        else
+            // Additional conditions
+            spy_vs_sma150 = (close - sma150) / sma150
+            sma150_proximity = math.abs(spy_vs_sma150)
+            near_sma150 = sma150_proximity < 0.035
+            
+            spy_above_ema30 = close > ema30
+            spy_cross_ema30 = spy_above_ema30 != spy_above_ema30[1] ? 1 : 0
+            ema30_above_sma150 = ema30 > sma150
+            ema30_cross_sma150 = ema30_above_sma150 != ema30_above_sma150[1] ? 1 : 0
+            total_crosses_20 = math.sum(spy_cross_ema30, 20) + math.sum(ema30_cross_sma150, 20)
+            high_crosses = total_crosses_20 >= 3
+            
+            high_low = high - low
+            high_close = math.abs(high - close[1])
+            low_close = math.abs(low - close[1])
+            true_range = math.max(high_low, math.max(high_close, low_close))
+            atr_20 = ta.sma(true_range, 20)
+            range_20 = ta.highest(high, 20) - ta.lowest(low, 20)
+            range_atr_ratio = range_20 / atr_20
+            low_range_atr = range_atr_ratio < 5.0
+            
+            additional_count = (near_sma150 ? 1 : 0) + (high_crosses ? 1 : 0) + (low_range_atr ? 1 : 0)
+            additional_valid = additional_count >= 2
+            
+            isLateral = core_valid and additional_valid
+            phaseColor = isLateral ? color.new(color.gray, 60) : na
+            [isLateral, phaseColor]
 
 // ============================================================================
 // FASE 2 — CRASH
