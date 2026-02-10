@@ -75,7 +75,7 @@ Il sistema deve riconoscerle in un ordine preciso.
 **Status:**
 - ✅ BULL/BEAR: CONGELATE
 - ✅ LATERAL: CONGELATA (v2.1 FINAL)
-- ⚠️ RECOVERY: In sviluppo
+- ✅ RECOVERY: Collision Test SUPERATO - Promossa a LIVELLO 1 (vedi COLLISION_TEST_RECOVERY.md)
 
 ---
 
