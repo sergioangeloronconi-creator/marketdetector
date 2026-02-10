@@ -9,19 +9,16 @@
 
 ## 📊 Gerarchia di Priorità (Vincolante)
 
-Dal più debole al più forte:
+**Fasi Attualmente Congelate:**
 
 | Priorità | Fase | Nome | Colore | Status |
 |----------|------|------|--------|--------|
 | 1 | Fase 0 | **Bull / Bear** (Baseline) | Verde/Rosso | ✅ CONGELATA |
 | 2 | Fase 1 | **Lateralità** (LATERAL) | Grigio | ✅ CONGELATA |
-| 3 | Fase 6 | **Distribuzione** | Arancione | ⚠️ In sviluppo |
-| 4 | Fase 4 | **Recovery** | Azzurro | ⚠️ In sviluppo |
-| 5 | Fase 5 | **Accumulazione** | Blu | ⚠️ In sviluppo |
-| 6 | Fase 2 | **Crash** | Giallo | ⚠️ In sviluppo |
-| 7 | Fase 3 | **Capitulation** | Viola | ⚠️ In sviluppo |
 
 **Regola fondamentale:** In caso di conflitto, **vince sempre la fase con priorità più alta**.
+
+**Nota:** Questo documento verrà aggiornato man mano che le fasi successive verranno congelate.
 
 ---
 
@@ -63,21 +60,14 @@ Il Market Detector è costruito per **layer successivi**, non per classificazion
 
 ```pine
 // Logica di determinazione fase per Decision Layer
-if not na(capitulationColor)
-    md_phase := "CAPITULATION"      // Priorità 7
-else if not na(crashColor)
-    md_phase := "CRASH"             // Priorità 6
-else if not na(accumulationColor)
-    md_phase := "ACCUMULATION"      // Priorità 5
-else if not na(recoveryColor)
-    md_phase := "RECOVERY"          // Priorità 4
-else if not na(distributionColor)
-    md_phase := "DISTRIBUTION"      // Priorità 3
-else if not na(lateralColor)
+// (Solo fasi congelate al momento)
+if not na(lateralColor)
     md_phase := "LATERAL"           // Priorità 2 ← SOVRASCRIVE Bull/Bear
 else
     md_phase := isBull ? "BULL" : "BEAR"  // Priorità 1
 ```
+
+**Nota:** Quando altre fasi verranno congelate, questa logica verrà estesa con le priorità corrispondenti.
 
 ### Esempi Pratici
 
@@ -96,21 +86,6 @@ else
 
 ---
 
-#### Esempio 2: Crash durante LATERAL
-
-**Situazione:**
-- LATERAL attiva (Priorità 2)
-- Crash rilevato (Priorità 6)
-
-**Risultato:**
-- ✅ Background: **Giallo** (Crash)
-- ✅ Decision Layer riceve: `md_phase = "CRASH"`
-- ⚠️ LATERAL: Attiva in background ma **NON comunicata**
-- ⚠️ Bull/Bear: Attivi in background ma **NON comunicati**
-
-**Motivazione:** Crash ha priorità assoluta su tutte le altre fasi.
-
----
 
 #### Esempio 3: Solo Bull Market attivo
 
@@ -168,17 +143,14 @@ La priorità è **assoluta** e **non negoziabile**:
 
 ## 🎨 Visualizzazione
 
-### Colori per Priorità
+### Colori per Priorità (Fasi Congelate)
 
 | Priorità | Fase | Colore RGB | Opacità |
 |----------|------|------------|---------|
 | 1 | Bull/Bear | Verde: (46,125,50) / Rosso: (198,40,40) | 0.45 |
 | 2 | LATERAL | Grigio | 0.60 |
-| 3 | Distribuzione | Arancione | TBD |
-| 4 | Recovery | Azzurro | TBD |
-| 5 | Accumulazione | Blu | TBD |
-| 6 | Crash | Giallo | TBD |
-| 7 | Capitulation | Viola | TBD |
+
+**Nota:** Colori per fasi future verranno aggiunti quando congelate.
 
 ### Comportamento Background
 
@@ -210,12 +182,13 @@ La priorità è **assoluta** e **non negoziabile**:
 
 ### Versione 1.0 (2026-02-09) - Ufficiale
 
-- ✅ Documentata gerarchia completa delle fasi
+- ✅ Documentata gerarchia fasi congelate (Bull/Bear, LATERAL)
 - ✅ Chiarito comportamento sovrascrittura (visivo e sistema)
 - ✅ Documentate regole di comunicazione al Decision Layer
 - ✅ Esempi pratici di sovrascrittura
-- ✅ Tabella priorità completa
+- ✅ Tabella priorità fasi congelate
 - ✅ Note per sviluppatori e Decision Layer
+- 📝 Documento verrà esteso man mano che altre fasi verranno congelate
 
 ---
 
