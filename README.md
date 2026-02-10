@@ -39,8 +39,8 @@ Ogni nuova fase:
 
 Dal più debole al più forte:
 
-1. **Bull / Bear** (Fase 0 - Baseline)
-2. **Lateralità** (Fase 1)
+1. **Bull / Bear** (Fase 0 - Baseline) - ✅ CONGELATA
+2. **Lateralità** (Fase 1) - ✅ CONGELATA
 3. **Distribuzione** (Fase 6)
 4. **Recovery** (Fase 4)
 5. **Accumulazione** (Fase 5)
@@ -48,6 +48,12 @@ Dal più debole al più forte:
 7. **Capitulation** (Fase 3) - **PRIORITÀ MASSIMA**
 
 In caso di conflitto: **vince sempre la fase con priorità più alta**.
+
+**📖 Documentazione completa:** Vedi `GERARCHIA_FASI.md` per dettagli su:
+- Comportamento sovrascrittura (visivo e sistema)
+- Regole di comunicazione al Decision Layer
+- Esempi pratici
+- Note per sviluppatori
 
 ## Struttura del Progetto
 
