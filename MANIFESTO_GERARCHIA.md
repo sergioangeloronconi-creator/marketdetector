@@ -1,11 +1,15 @@
 # Manifesto di Gerarchia - Market Detector
 
 **Documento:** Costituzione del Market Detector  
-**Stato:** FROZEN  
-**Data:** 2026-02-09  
+**Versione:** 1.0 FINAL  
+**Stato:** FROZEN / CONGELATO  
+**Data Congelamento:** 2026-02-09  
 **Q-Mentor Framework - Market Detector**
 
-**🔒 COSTITUZIONE DEL SISTEMA - NON MODIFICABILE SENZA DECISIONE ARCHITETTURALE ESPLICITA**
+**🔒 COSTITUZIONE DEL SISTEMA - VERSIONE DEFINITIVA CONGELATA**
+
+**⚠️ IMPORTANTE:** Questa versione sostituisce tutte le versioni precedenti della gerarchia.  
+**NON MODIFICABILE SENZA DECISIONE ARCHITETTURALE ESPLICITA.**
 
 ---
 

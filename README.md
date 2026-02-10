@@ -35,25 +35,27 @@ Ogni nuova fase:
 
 **Concetto chiave:** Le fasi avanzate hanno priorità semantica e visiva sulle fasi base.
 
-## Gerarchia di Priorità (Vincolante)
+## Gerarchia Costituzionale (Vincolante)
 
-Dal più debole al più forte:
+**📖 Riferimento Ufficiale:** `MANIFESTO_GERARCHIA.md` (FROZEN)
 
-1. **Bull / Bear** (Fase 0 - Baseline) - ✅ CONGELATA
-2. **Lateralità** (Fase 1) - ✅ CONGELATA
-3. **Distribuzione** (Fase 6)
-4. **Recovery** (Fase 4)
-5. **Accumulazione** (Fase 5)
-6. **Crash** (Fase 2)
-7. **Capitulation** (Fase 3) - **PRIORITÀ MASSIMA**
+La gerarchia del Market Detector è organizzata in 5 livelli + transizione derivata:
 
-In caso di conflitto: **vince sempre la fase con priorità più alta**.
+- **🔴 LIVELLO 0:** Eventi Sistemici (CRASH, CAPITULATION) - Autorità assoluta
+- **🟠 LIVELLO 1:** Regime Strutturale (BULL, BEAR, LATERAL, RECOVERY) - Mutualmente esclusivi
+- **🟡 LIVELLO 2:** Eventi Locali di Stress (LoCE, Capitulation locale)
+- **🟢 LIVELLO 3:** Processi di Rischio (ACCUMULATION, DISTRIBUTION) - **NON sono fasi**
+- **🔵 LIVELLO 4:** Rotazione Settoriale
+- **⚪ LIVELLO 5:** Qualificatori
+- **Derivato:** md_transition (Bull+Distribution, Bear+Accumulation)
 
-**📖 Documentazione completa:** Vedi `GERARCHIA_FASI_BULL_BEAR_LATERALITA.md` per dettagli su:
-- Comportamento sovrascrittura (visivo e sistema)
-- Regole di comunicazione al Decision Layer
-- Esempi pratici
-- Note per sviluppatori
+**Fasi Congelate:**
+- ✅ Bull/Bear (LIVELLO 1) - CONGELATA
+- ✅ LATERAL (LIVELLO 1) - CONGELATA v2.1 FINAL
+
+**Regola fondamentale:** Nessun livello può sovrascrivere un livello superiore.
+
+**Forma comunicazione:** Regime → Processo → Rotazione → Transition
 
 ## Struttura del Progetto
 

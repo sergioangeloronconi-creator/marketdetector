@@ -1,17 +1,21 @@
 # Gerarchia Fasi Bull/Bear - Lateralità
 
-**Versione:** 1.0 - Congelata  
-**Data Congelamento:** 2026-02-09  
-**Status:** FROZEN - PRODUZIONE - NON MODIFICARE SENZA APPROVAZIONE  
+**Versione:** 1.0 - SOSTITUITO  
+**Data Congelamento Originale:** 2026-02-09  
+**Status:** SOSTITUITO DA MANIFESTO_GERARCHIA.md  
 **Q-Mentor Framework - Market Detector**
 
-**🔒 DOCUMENTO CONGELATO**
+**⚠️ DOCUMENTO SOSTITUITO**
 
-Questo documento descrive la gerarchia tra le fasi attualmente congelate:
+Questo documento è stato **sostituito** dal `MANIFESTO_GERARCHIA.md` che contiene la gerarchia costituzionale completa.
+
+**Riferimento attuale:** Vedi `MANIFESTO_GERARCHIA.md` per la gerarchia ufficiale congelata.
+
+**Nota storica:** Questo documento descriveva la gerarchia tra:
 - Fase Bull/Bear (Priorità 1)
 - Fase Lateralità (Priorità 2)
 
-Il documento verrà esteso man mano che altre fasi verranno congelate.
+Ora parte della gerarchia costituzionale completa (LIVELLO 1 - Regime Strutturale).
 
 ---
 

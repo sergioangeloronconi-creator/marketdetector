@@ -1,7 +1,9 @@
 //@version=6
 // Market Detector (MD) — Phase Stratification Framework
-// File Master: gestisce priorità, overlay e colore finale
+// File Master: gestisce gerarchia costituzionale, overlay e colore finale
 // Q-Mentor Framework
+// VERSIONE: 1.0 FINAL - CONGELATA
+// Gerarchia Costituzionale: Vedi MANIFESTO_GERARCHIA.md (FROZEN)
 
 indicator("Market Detector - Phase Stratification", shorttitle="MD", overlay=true, max_bars_back=500)
 

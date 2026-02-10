@@ -1,11 +1,13 @@
 # Comunicazione Multilivello - Market Detector
 
-**Versione:** 1.0 - Ufficiale  
-**Data:** 2026-02-09  
-**Status:** PRODUZIONE - RIFERIMENTO UFFICIALE  
+**Versione:** 1.0 FINAL - Congelata  
+**Data Congelamento:** 2026-02-09  
+**Status:** FROZEN - PRODUZIONE - NON MODIFICARE SENZA APPROVAZIONE  
 **Q-Mentor Framework - Market Detector**
 
-**📖 Riferimento:** Vedi `MANIFESTO_GERARCHIA.md` per la gerarchia costituzionale completa.
+**📖 Riferimento:** Vedi `MANIFESTO_GERARCHIA.md` per la gerarchia costituzionale completa (FROZEN).
+
+**🔒 DOCUMENTO CONGELATO - VERSIONE DEFINITIVA**
 
 ---
 
