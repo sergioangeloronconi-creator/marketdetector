@@ -191,9 +191,13 @@ distribuzionePhase() =>
     [isDistribution, phaseColor]
 
 // ============================================================================
-// GESTIONE PRIORITÀ E OVERLAY
-// Gerarchia: Capitulation (7) > Crash (6) > Accumulazione (5) > Recovery (4) 
-//           > Distribuzione (3) > Lateralità (2) > Baseline (1)
+// GERARCHIA COSTITUZIONALE - Vedi MANIFESTO_GERARCHIA.md (FROZEN)
+// LIVELLO 0: Eventi Sistemici (CRASH, CAPITULATION) - Autorità assoluta
+// LIVELLO 1: Regime Strutturale (BULL, BEAR, LATERAL, RECOVERY) - Mutualmente esclusivi
+// LIVELLO 2: Eventi Locali di Stress (LoCE, Capitulation locale)
+// LIVELLO 3: Processi di Rischio (ACCUMULATION, DISTRIBUTION) - NON sono fasi
+// LIVELLO 4: Rotazione Settoriale
+// LIVELLO 5: Qualificatori
 // ============================================================================
 
 // Calcolo di tutte le fasi
